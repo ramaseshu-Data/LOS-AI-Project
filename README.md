@@ -1,5 +1,6 @@
 # LOS-AI-Project
   AI Powered Data Analytics for Predicting Hospital Length of Stay to Enhance Bed Capacity and Staffing Decisions
+
 📌 Overview
 
 This project uses AI and Machine Learning to predict hospital Length of Stay (LOS) based on patient, clinical, and admission data.
