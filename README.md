@@ -4,10 +4,9 @@
 
 MSc Computing (Information Systems & Processes) dissertation · South East Technological University (SETU), 2026 · Meruva Vijaya Rama Seshu
 
-[![CI](https://github.com/ramaseshu-Data/LOS-AI-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/ramaseshu-Data/LOS-AI-Project/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-orange)
 
-📄 **Dissertation:** [PDF](docs/Research_Work.pdf) · [Word](docs/Research_Work.docx) &nbsp;|&nbsp; 📓 **Notebook:** [LOS_Analysis.ipynb](notebooks/LOS_Analysis.ipynb)
+📄 **Dissertation:** [PDF](Research_Work.pdf) · [Word](Research_Work.docx) &nbsp;|&nbsp; 📓 **Notebook:** [LOS_Analysis.ipynb](LOS_Analysis.ipynb)
 
 ---
 
@@ -28,7 +27,7 @@ Hospitals usually plan beds and staff from *average* length of stay (LOS). But L
 | **ANN (MLP 64-32)** | **0.1949** | **0.4415** | **0.2963** | **0.9645** |
 | Tuned Random Forest (grid search) | 0.4116 | 0.6415 | 0.3887 | 0.9250 |
 
-![Model comparison](reports/figures/06_model_comparison.png)
+![Model comparison](06_model_comparison.png)
 
 - **The ANN was the most accurate** (R² 0.96, typical error under half a day) but it is a black box and hit its iteration limit before converging.
 - **Random Forest was stable**: 5-fold cross-validation RMSE per fold 0.646–0.662 (mean 0.654). Grid search picked 100 trees, unlimited depth, `min_samples_split=5`; tuning gave only a marginal gain (RMSE 0.6422 → 0.6415).
@@ -36,7 +35,7 @@ Hospitals usually plan beds and staff from *average* length of stay (LOS). But L
 
 ### What drives length of stay
 
-![Feature importance](reports/figures/08_feature_importance.png)
+![Feature importance](08_feature_importance.png)
 
 **Readmissions in the previous 180 days** dominate: shuffling that one feature adds almost 2 days to the typical error. Major psychological disorder, haematocrit, the admitting facility and the haemoglobin / iron-deficiency flags follow. Patients with 5+ recent readmissions stay about three times as long as those with none (8.3 vs 2.7 days on average; figure below). These are associations in historical data, not causes.
 
@@ -44,7 +43,7 @@ Hospitals usually plan beds and staff from *average* length of stay (LOS). But L
 
 The dissertation argues that LOS predictions matter because they drive bed and staff planning. The code tests that directly: for every test-set admission it builds the **daily occupied-bed count per facility** three ways — using actual LOS, using predicted LOS, and using the historical average LOS — and converts beds into nurses needed at an illustrative 1 nurse : 6 beds.
 
-![Bed occupancy simulation](reports/figures/09_bed_occupancy_simulation.png)
+![Bed occupancy simulation](09_bed_occupancy_simulation.png)
 
 | Planning method | Avg. error in daily occupied beds | Worst day | Ward-days with wrong nurse count |
 |---|---:|---:|---:|
@@ -69,41 +68,29 @@ The notebook's simple rule — *flag patients predicted to stay 7+ days as high 
 
 | | |
 |---|---|
-| ![LOS distribution](reports/figures/01_los_distribution.png) | ![LOS by readmissions](reports/figures/05_los_by_readmissions.png) |
-| ![LOS by facility](reports/figures/03_los_by_facility.png) | ![LOS by gender](reports/figures/02_los_by_gender.png) |
+| ![LOS distribution](01_los_distribution.png) | ![LOS by readmissions](05_los_by_readmissions.png) |
+| ![LOS by facility](03_los_by_facility.png) | ![LOS by gender](02_los_by_gender.png) |
 
-## Run it yourself
+## Files in this repository
+
+| File | What it is |
+|---|---|
+| `LOS_Analysis.ipynb` | The full analysis notebook from the dissertation — data checks, EDA, all five models, cross-validation, grid search |
+| `LengthOfStay.csv` | Dataset: 100,000 admissions × 28 columns ([source](https://www.kaggle.com/datasets/aayushchou/hospital-length-of-stay-dataset-microsoft)) |
+| `MetaData_Facilities.csv` | Names of the five facilities (A–E) |
+| `Research_Work.pdf` / `.docx` | Dissertation |
+| `train.py`, `data.py`, `models.py`, `evaluate.py`, `capacity.py`, `config.py` | The notebook rewritten as a reusable Python pipeline, plus the feature-importance and bed/staffing extensions |
+| `test_pipeline.py` | Unit tests for the pipeline |
+| `*.png` | Charts used in this README |
+
+### Run the notebook
 
 ```bash
-git clone https://github.com/ramaseshu-Data/LOS-AI-Project.git
-cd LOS-AI-Project
 pip install -r requirements.txt
-
-# Windows (PowerShell): $env:PYTHONPATH="src"   |   macOS/Linux: export PYTHONPATH=src
-python -m los.train --quick         # 1-minute smoke test on 10k rows
-python -m los.train --skip-tuning   # all five models, ~5 minutes
-python -m los.train                 # full run incl. CV + grid search, ~30-40 minutes
-pytest                              # unit tests
+jupyter notebook LOS_Analysis.ipynb
 ```
 
-Outputs go to `reports/` (`model_comparison.csv`, `metrics.json`, `feature_importance.csv`, `capacity_staffing.csv`, figures). The pipeline reproduces the dissertation's figures to four decimal places.
-
-## Repository structure
-
-```
-├── data/                  LengthOfStay.csv (100k rows) + data dictionary
-├── docs/                  Dissertation (PDF and Word)
-├── notebooks/             Original analysis notebook from the dissertation
-├── src/los/
-│   ├── config.py          paths, feature lists, settings
-│   ├── data.py            loading, leakage check, cleaning
-│   ├── models.py          preprocessing pipeline + 5 models
-│   ├── evaluate.py        MSE / RMSE / MAE / R²
-│   ├── capacity.py        daily bed census + nurse staffing
-│   └── train.py           end-to-end pipeline
-├── tests/                 unit tests (run in GitHub Actions)
-└── reports/               metrics and figures produced by the pipeline
-```
+In the notebook's loading cell, set the path to `"LengthOfStay.csv"` (the dataset sits in the same folder). Results match the tables above to four decimal places.
 
 ## Limitations
 
@@ -115,7 +102,7 @@ Outputs go to `reports/` (`model_comparison.csv`, `metrics.json`, `feature_impor
 
 ## Tech stack
 
-Python · pandas · NumPy · scikit-learn · Matplotlib · Seaborn · Jupyter · VS Code · Git / GitHub Actions
+Python · pandas · NumPy · scikit-learn · Matplotlib · Seaborn · Jupyter · VS Code · Git
 
 ## Author
 
